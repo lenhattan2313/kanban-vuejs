@@ -1,9 +1,31 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { RouterView } from 'vue-router'
+import AppLayout from '@/components/layout/AppLayout.vue'
+
+const route = useRoute()
+
+const activeRoute = computed(() => {
+  const path = route.path
+
+  // Handle board routes
+  if (path.startsWith('/board') && !path.includes('/settings')) return 'boards'
+  if (path.startsWith('/boards')) return 'boards'
+  if (path.startsWith('/members')) return 'members'
+  if (path.startsWith('/settings')) return 'settings'
+
+  // Handle root redirect
+  if (path === '/') return 'boards'
+
+  return 'boards'
+})
 </script>
 
 <template>
-  <RouterView />
+  <AppLayout :active-route="activeRoute">
+    <RouterView />
+  </AppLayout>
 </template>
 
 <style scoped>

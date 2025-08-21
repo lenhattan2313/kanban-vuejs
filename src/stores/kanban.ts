@@ -1,13 +1,25 @@
+import type { Board, Card, DragItem, DropResult, LoadingState, User } from '@/types'
+import { STORAGE_KEYS } from '@/utils/constants'
+import { validateCard } from '@/utils/validation'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { Board, Column, Card, Priority } from '@/types'
+import { computed, ref } from 'vue'
 
 export const useKanbanStore = defineStore('kanban', () => {
   // State
   const boards = ref<Board[]>([])
   const currentBoard = ref<Board | null>(null)
-  const isLoading = ref(false)
-  const error = ref<string | null>(null)
+  const currentUser = ref<User | null>(null)
+  const loadingState = ref<LoadingState>({
+    isLoading: false,
+    error: null,
+  })
+  const dragState = ref<{
+    isDragging: boolean
+    dragItem: DragItem | null
+  }>({
+    isDragging: false,
+    dragItem: null,
+  })
 
   // Mock data for development
   const mockBoard: Board = {
@@ -16,12 +28,21 @@ export const useKanbanStore = defineStore('kanban', () => {
     description: 'A sample Kanban board for development',
     ownerId: 'user1',
     isPublic: true,
+    members: [
+      {
+        userId: 'user1',
+        role: 'owner',
+        joinedAt: new Date(),
+      },
+    ],
     columns: [
       {
         id: 'col1',
         title: 'To Do',
+        description: 'Tasks that need to be started',
         position: 0,
         boardId: '1',
+        isArchived: false,
         cards: [
           {
             id: 'card1',
@@ -31,6 +52,8 @@ export const useKanbanStore = defineStore('kanban', () => {
             tags: ['design', 'ui'],
             position: 0,
             columnId: 'col1',
+            attachments: [],
+            comments: [],
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -42,6 +65,8 @@ export const useKanbanStore = defineStore('kanban', () => {
             tags: ['setup'],
             position: 1,
             columnId: 'col1',
+            attachments: [],
+            comments: [],
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -52,8 +77,10 @@ export const useKanbanStore = defineStore('kanban', () => {
       {
         id: 'col2',
         title: 'In Progress',
+        description: 'Tasks currently being worked on',
         position: 1,
         boardId: '1',
+        isArchived: false,
         cards: [
           {
             id: 'card3',
@@ -63,6 +90,8 @@ export const useKanbanStore = defineStore('kanban', () => {
             tags: ['feature', 'drag-drop'],
             position: 0,
             columnId: 'col2',
+            attachments: [],
+            comments: [],
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -73,8 +102,10 @@ export const useKanbanStore = defineStore('kanban', () => {
       {
         id: 'col3',
         title: 'Done',
+        description: 'Completed tasks',
         position: 2,
         boardId: '1',
+        isArchived: false,
         cards: [
           {
             id: 'card4',
@@ -84,6 +115,8 @@ export const useKanbanStore = defineStore('kanban', () => {
             tags: ['setup', 'complete'],
             position: 0,
             columnId: 'col3',
+            attachments: [],
+            comments: [],
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -97,6 +130,28 @@ export const useKanbanStore = defineStore('kanban', () => {
       allowComments: true,
       allowAttachments: true,
       autoArchive: false,
+      workflowRules: [],
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  // Mock user for development
+  const mockUser: User = {
+    id: 'user1',
+    name: 'John Doe',
+    email: 'john@example.com',
+    role: 'admin',
+    preferences: {
+      theme: 'auto',
+      language: 'en',
+      notifications: {
+        email: true,
+        push: true,
+        mentions: true,
+        dueDateReminders: true,
+      },
+      boardView: 'kanban',
     },
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -105,6 +160,7 @@ export const useKanbanStore = defineStore('kanban', () => {
   // Initialize with mock data
   boards.value = [mockBoard]
   currentBoard.value = mockBoard
+  currentUser.value = mockUser
 
   // Getters
   const boardColumns = computed(() => currentBoard.value?.columns || [])
@@ -113,10 +169,33 @@ export const useKanbanStore = defineStore('kanban', () => {
     boardColumns.value.reduce((total, column) => total + column.cards.length, 0),
   )
 
+  const isLoading = computed(() => loadingState.value.isLoading)
+  const error = computed(() => loadingState.value.error)
+
+  const userCanEdit = computed(() => {
+    if (!currentUser.value || !currentBoard.value) return false
+    const member = currentBoard.value.members.find((m) => m.userId === currentUser.value?.id)
+    return member?.role === 'owner' || member?.role === 'admin' || member?.role === 'member'
+  })
+
+  const userCanView = computed(() => {
+    if (!currentUser.value || !currentBoard.value) return false
+    if (currentBoard.value.isPublic) return true
+    const member = currentBoard.value.members.find((m) => m.userId === currentUser.value?.id)
+    return !!member
+  })
+
   // Actions
+  const setLoading = (isLoading: boolean, error: string | null = null) => {
+    loadingState.value = {
+      isLoading,
+      error,
+      lastUpdated: isLoading ? undefined : new Date(),
+    }
+  }
+
   const fetchBoard = async (boardId: string) => {
-    isLoading.value = true
-    error.value = null
+    setLoading(true)
 
     try {
       // Simulate API call
@@ -124,23 +203,37 @@ export const useKanbanStore = defineStore('kanban', () => {
       const board = boards.value.find((b) => b.id === boardId)
       if (board) {
         currentBoard.value = board
+        // Save to recent boards
+        saveRecentBoard(boardId)
       } else {
-        error.value = 'Board not found'
+        setLoading(false, 'Board not found')
       }
     } catch (err) {
-      error.value = 'Failed to fetch board'
+      setLoading(false, 'Failed to fetch board')
       console.error(err)
     } finally {
-      isLoading.value = false
+      setLoading(false)
     }
   }
 
-  const addCard = (columnId: string, card: Omit<Card, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!currentBoard.value) return
+  const addCard = (
+    columnId: string,
+    cardData: Omit<Card, 'id' | 'createdAt' | 'updatedAt' | 'attachments' | 'comments'>,
+  ) => {
+    if (!currentBoard.value) return false
+
+    // Validate card data
+    const validation = validateCard(cardData)
+    if (!validation.isValid) {
+      console.error('Card validation failed:', validation.errors)
+      return false
+    }
 
     const newCard: Card = {
-      ...card,
+      ...cardData,
       id: `card-${Date.now()}`,
+      attachments: [],
+      comments: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -148,7 +241,9 @@ export const useKanbanStore = defineStore('kanban', () => {
     const column = currentBoard.value.columns.find((col) => col.id === columnId)
     if (column) {
       column.cards.push(newCard)
+      return true
     }
+    return false
   }
 
   const updateCard = (cardId: string, updates: Partial<Card>) => {
@@ -184,8 +279,8 @@ export const useKanbanStore = defineStore('kanban', () => {
     fromColumnId: string,
     toColumnId: string,
     newPosition: number,
-  ) => {
-    if (!currentBoard.value) return
+  ): boolean => {
+    if (!currentBoard.value) return false
 
     const fromColumn = currentBoard.value.columns.find((col) => col.id === fromColumnId)
     const toColumn = currentBoard.value.columns.find((col) => col.id === toColumnId)
@@ -198,7 +293,65 @@ export const useKanbanStore = defineStore('kanban', () => {
         card.position = newPosition
         card.updatedAt = new Date()
         toColumn.cards.splice(newPosition, 0, card)
+        return true
       }
+    }
+    return false
+  }
+
+  // Drag and Drop Actions
+  const startDrag = (dragItem: DragItem) => {
+    dragState.value = {
+      isDragging: true,
+      dragItem,
+    }
+  }
+
+  const endDrag = () => {
+    dragState.value = {
+      isDragging: false,
+      dragItem: null,
+    }
+  }
+
+  const handleDrop = (dropResult: DropResult): boolean => {
+    if (!dragState.value.dragItem) return false
+
+    const { dragItem } = dragState.value
+
+    if (dragItem.type === 'card' && dropResult.type === 'card') {
+      return moveCard(
+        dragItem.id,
+        dragItem.sourceColumnId!,
+        dropResult.targetColumnId!,
+        dropResult.targetIndex!,
+      )
+    }
+
+    endDrag()
+    return false
+  }
+
+  // Utility Actions
+  const saveRecentBoard = (boardId: string) => {
+    try {
+      const recentBoards = JSON.parse(localStorage.getItem(STORAGE_KEYS.RECENT_BOARDS) || '[]')
+      const updatedBoards = [boardId, ...recentBoards.filter((id: string) => id !== boardId)].slice(
+        0,
+        5,
+      )
+      localStorage.setItem(STORAGE_KEYS.RECENT_BOARDS, JSON.stringify(updatedBoards))
+    } catch (error) {
+      console.error('Failed to save recent board:', error)
+    }
+  }
+
+  const getRecentBoards = (): string[] => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.RECENT_BOARDS) || '[]')
+    } catch (error) {
+      console.error('Failed to get recent boards:', error)
+      return []
     }
   }
 
@@ -206,18 +359,29 @@ export const useKanbanStore = defineStore('kanban', () => {
     // State
     boards,
     currentBoard,
-    isLoading,
-    error,
+    currentUser,
+    loadingState,
+    dragState,
 
     // Getters
     boardColumns,
     totalCards,
+    isLoading,
+    error,
+    userCanEdit,
+    userCanView,
 
     // Actions
+    setLoading,
     fetchBoard,
     addCard,
     updateCard,
     deleteCard,
     moveCard,
+    startDrag,
+    endDrag,
+    handleDrop,
+    saveRecentBoard,
+    getRecentBoards,
   }
 })

@@ -1,27 +1,10 @@
 <template>
-  <div class="min-h-screen bg-background">
+  <div class="h-screen flex flex-col">
     <!-- Header -->
-    <header class="border-b bg-card">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-2xl font-bold text-foreground">
-              {{ currentBoard?.title || 'Kanban Board' }}
-            </h1>
-            <p v-if="currentBoard?.description" class="text-sm text-muted-foreground mt-1">
-              {{ currentBoard.description }}
-            </p>
-          </div>
-          <div class="flex items-center gap-2">
-            <BaseButton variant="outline" size="sm"> Settings </BaseButton>
-            <BaseButton size="sm"> Add Card </BaseButton>
-          </div>
-        </div>
-      </div>
-    </header>
+    <KanbanHeader :board="currentBoard" @settings="openSettings" @add-card="openAddCard" />
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-6">
+    <main class="flex-1 overflow-hidden">
       <div v-if="isLoading" class="flex items-center justify-center py-12">
         <div class="text-center">
           <div
@@ -38,78 +21,25 @@
         </div>
       </div>
 
-      <div v-else-if="currentBoard" class="space-y-6">
+      <div v-else-if="currentBoard" class="h-full p-6">
         <!-- Board Stats -->
-        <div class="flex items-center gap-4 text-sm text-muted-foreground">
+        <div class="flex items-center gap-4 text-sm text-muted-foreground mb-6">
           <span>{{ boardColumns.length }} columns</span>
           <span>{{ totalCards }} cards</span>
         </div>
 
         <!-- Kanban Columns -->
-        <div class="flex gap-4 overflow-x-auto pb-4">
-          <div v-for="column in boardColumns" :key="column.id" class="flex-shrink-0 w-80">
-            <div class="bg-card border rounded-lg p-4">
-              <!-- Column Header -->
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="font-semibold text-foreground">{{ column.title }}</h3>
-                <span class="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">
-                  {{ column.cards.length }}
-                </span>
-              </div>
-
-              <!-- Column Cards -->
-              <div class="space-y-3">
-                <div
-                  v-for="card in column.cards"
-                  :key="card.id"
-                  class="bg-background border rounded-md p-3 cursor-pointer hover:shadow-md transition-shadow"
-                  @click="openCard(card)"
-                >
-                  <h4 class="font-medium text-foreground mb-2">{{ card.title }}</h4>
-                  <p
-                    v-if="card.description"
-                    class="text-sm text-muted-foreground mb-3 line-clamp-2"
-                  >
-                    {{ card.description }}
-                  </p>
-
-                  <!-- Card Meta -->
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span
-                        :class="priorityClasses[card.priority]"
-                        class="text-xs px-2 py-1 rounded-full"
-                      >
-                        {{ card.priority }}
-                      </span>
-                    </div>
-                    <div v-if="card.tags.length" class="flex gap-1">
-                      <span
-                        v-for="tag in card.tags.slice(0, 2)"
-                        :key="tag"
-                        class="text-xs bg-muted px-2 py-1 rounded"
-                      >
-                        {{ tag }}
-                      </span>
-                      <span v-if="card.tags.length > 2" class="text-xs text-muted-foreground px-1">
-                        +{{ card.tags.length - 2 }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Add Card Button -->
-                <BaseButton
-                  variant="ghost"
-                  size="sm"
-                  class="w-full justify-start text-muted-foreground hover:text-foreground"
-                  @click="addCardToColumn(column.id)"
-                >
-                  + Add Card
-                </BaseButton>
-              </div>
-            </div>
-          </div>
+        <div class="flex gap-4 overflow-x-auto pb-4 h-full">
+          <KanbanColumn
+            v-for="column in boardColumns"
+            :key="column.id"
+            :column="column"
+            @edit="editColumn"
+            @add-card="addCardToColumn"
+            @card-click="openCard"
+            @card-edit="editCard"
+            @card-delete="deleteCard"
+          />
 
           <!-- Add Column Button -->
           <div class="flex-shrink-0 w-80">
@@ -125,20 +55,17 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useKanbanStore } from '@/stores/kanban'
 import BaseButton from '@/components/ui/Button.vue'
-import type { Card } from '@/types'
+import KanbanHeader from '@/components/kanban/KanbanHeader.vue'
+import KanbanColumn from '@/components/kanban/KanbanColumn.vue'
+import type { Card, Column } from '@/types'
 
+const route = useRoute()
 const kanbanStore = useKanbanStore()
 
 const { currentBoard, boardColumns, totalCards, isLoading, error, fetchBoard } = kanbanStore
-
-const priorityClasses = {
-  low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-  urgent: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-}
 
 const openCard = (card: Card) => {
   console.log('Opening card:', card)
@@ -155,7 +82,33 @@ const addColumn = () => {
   // TODO: Open add column modal
 }
 
+const openSettings = () => {
+  console.log('Opening settings')
+  // TODO: Navigate to settings
+}
+
+const openAddCard = () => {
+  console.log('Opening add card modal')
+  // TODO: Open add card modal
+}
+
+const editColumn = (column: Column) => {
+  console.log('Editing column:', column)
+  // TODO: Open edit column modal
+}
+
+const editCard = (card: Card) => {
+  console.log('Editing card:', card)
+  // TODO: Open edit card modal
+}
+
+const deleteCard = (card: Card) => {
+  console.log('Deleting card:', card)
+  // TODO: Confirm and delete card
+}
+
 onMounted(() => {
-  fetchBoard('1')
+  const boardId = route.params.id as string
+  fetchBoard(boardId)
 })
 </script>

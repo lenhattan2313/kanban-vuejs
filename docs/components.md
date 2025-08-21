@@ -108,7 +108,7 @@ Every component should follow a consistent structure:
 ### Design System Integration
 
 - **Tailwind CSS**: Utility-first styling approach
-- **Shadcn UI**: Beautiful, accessible component library
+- **Inspira UI**: Beautiful, accessible component library
 - **Design Tokens**: Consistent colors, spacing, and typography
 - **Component Variants**: Size, color, and state variants
 - **Theme Support**: Dark and light mode compatibility

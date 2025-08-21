@@ -16,7 +16,7 @@ This guide covers the development setup, tech stack, and development workflow fo
 - Vue Language Features (Volar)
 - TypeScript Vue Plugin (Volar)
 - Tailwind CSS IntelliSense
-- Shadcn UI IntelliSense
+- Inspira UI IntelliSense
 - Prettier - Code formatter
 - ESLint
 - GitLens
@@ -24,13 +24,11 @@ This guide covers the development setup, tech stack, and development workflow fo
 ### Initial Setup
 
 1. **Clone and Install**
-
    - Clone the repository
    - Install dependencies with npm install
    - Set up environment variables
 
 2. **Environment Configuration**
-
    - Copy .env.example to .env.local
    - Configure API endpoints and other environment variables
 
@@ -66,19 +64,16 @@ This guide covers the development setup, tech stack, and development workflow fo
 ### 1. Feature Development Process
 
 1. **Planning Phase**
-
    - Define feature requirements
    - Create component architecture
    - Plan state management structure
 
 2. **Development Phase**
-
    - Create feature branch
    - Implement components and logic
    - Add TypeScript types
 
 3. **Validation Phase**
-
    - Test responsive design
    - Verify accessibility
    - Manual testing and validation

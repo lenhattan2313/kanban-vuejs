@@ -27,7 +27,6 @@ The application is structured in three main layers:
 ### Directory Organization
 
 - **src/components/**: Reusable Vue components
-
   - **ui/**: Base UI components (Button, Modal, Input, etc.)
   - **kanban/**: Kanban-specific components (Card, Column, Board)
   - **layout/**: Layout components (Header, Sidebar, Footer)
@@ -125,7 +124,7 @@ The application implements a strict unidirectional data flow:
 The application implements a comprehensive design system:
 
 - **Design Tokens**: Colors, spacing, typography, and shadows
-- **Component Library**: Shadcn UI components with consistent styling
+- **Component Library**: Inspira UI components with consistent styling
 - **Tailwind CSS**: Utility-first CSS framework
 - **Theme System**: Dark and light mode support
 - **Responsive Design**: Mobile-first approach with breakpoint system

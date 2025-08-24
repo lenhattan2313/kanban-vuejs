@@ -219,3 +219,52 @@ export interface Notification {
   createdAt: Date
   actionUrl?: string
 }
+
+// Sidebar and Navigation Types
+export interface NavigationItem {
+  id: string
+  label: string
+  icon?: string
+  route?: string
+  badge?: string | number
+  isActive?: boolean
+  isDisabled?: boolean
+  children?: NavigationItem[]
+  permissions?: string[]
+  onClick?: () => void
+}
+
+export interface SidebarConfig {
+  brand: {
+    logo?: string
+    title: string
+    subtitle?: string
+  }
+  workspace?: {
+    id: string
+    name: string
+    avatar?: string
+    avatarText?: string
+  }
+  navigation: NavigationItem[]
+  user?: {
+    id: string
+    name: string
+    email: string
+    avatar?: string
+    avatarText?: string
+    role?: string
+  }
+  features?: {
+    collapsible?: boolean
+    mobileResponsive?: boolean
+    showUserProfile?: boolean
+    showWorkspaceInfo?: boolean
+  }
+}
+
+export interface SidebarState {
+  isCollapsed: boolean
+  isMobileOpen: boolean
+  activeRoute: string
+}

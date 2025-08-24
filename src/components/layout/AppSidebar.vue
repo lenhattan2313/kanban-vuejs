@@ -1,96 +1,147 @@
 <template>
-  <aside class="w-64 flex flex-col h-screen">
-    <!-- Logo/Brand -->
-    <div class="p-4 border-b border-gray-200">
-      <div class="flex items-center gap-2">
-        <h1 class="text-xl font-bold text-gray-900">kanban.pr</h1>
-      </div>
-    </div>
+  <aside
+    class="flex flex-col h-screen bg-white border-r border-gray-200 transition-all duration-300 relative"
+    :class="[
+      isCollapsed ? 'w-16' : 'w-64',
+      isMobileOpen ? 'fixed inset-y-0 left-0 z-50' : '',
+      features?.mobileResponsive ? 'lg:relative' : '',
+    ]"
+  >
+    <!-- Mobile Overlay -->
+    <div
+      v-if="isMobileOpen && features?.mobileResponsive"
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+      @click="handleMobileClose"
+    />
 
-    <!-- Project/Workspace -->
-    <div class="p-4 pl-8 pb-0">
-      <div class="flex items-center gap-3">
-        <div class="w-5 h-5 bg-primary rounded flex items-center justify-center">
-          <span class="text-white font-semibold text-sm">T</span>
-        </div>
-        <span class="text-gray-900 font-medium">testfgf</span>
-      </div>
-    </div>
+    <!-- Brand/Logo Section -->
+    <SidebarBrand v-if="brand" :brand="brand" :is-collapsed="isCollapsed" />
 
-    <!-- Navigation -->
-    <nav class="flex-1 p-4">
+    <!-- Workspace Info Section -->
+    <SidebarWorkspaceInfo
+      v-if="workspace && features?.showWorkspaceInfo"
+      :workspace="workspace"
+      :show-menu="!isCollapsed"
+      :is-collapsed="isCollapsed"
+      @menu-click="handleWorkspaceMenuClick"
+    />
+
+    <!-- Navigation Section -->
+    <nav class="flex-1 px-4 overflow-y-auto">
       <ul class="space-y-1">
-        <li>
-          <RouterLink
-            to="/boards"
-            class="flex items-center gap-3 px-3 py-2 text-gray-900 rounded-md transition-colors"
-            :class="{ 'bg-gray-200': isActive('boards') }"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
-              />
-            </svg>
-            Boards
-          </RouterLink>
-        </li>
-        <li>
-          <RouterLink
-            to="/members"
-            class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-            :class="{ 'bg-gray-200 text-gray-900': isActive('members') }"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"
-              />
-            </svg>
-            Members
-          </RouterLink>
-        </li>
-        <li>
-          <RouterLink
-            to="/settings"
-            class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-            :class="{ 'bg-gray-200 text-gray-900': isActive('settings') }"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            Settings
-          </RouterLink>
-        </li>
+        <SidebarNavItem
+          v-for="item in processedNavigation"
+          :key="item.id"
+          :item="item"
+          :is-collapsed="isCollapsed"
+          @item-click="handleNavigationClick"
+        />
       </ul>
     </nav>
 
-    <!-- User Profile -->
-    <div class="p-4">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-          <span class="text-white font-semibold text-sm">L</span>
-        </div>
-        <span class="text-gray-900 text-sm">lenhattan2313@gmail.com</span>
-      </div>
-    </div>
+    <!-- User Profile Section -->
+    <SidebarUserProfile
+      v-if="user && features?.showUserProfile"
+      :user="user"
+      :show-settings="!isCollapsed"
+      :is-collapsed="isCollapsed"
+      @settings-click="handleUserSettingsClick"
+    />
+
+    <!-- Collapse Toggle Button -->
+    <button
+      v-if="features?.collapsible"
+      @click="handleToggleCollapse"
+      class="absolute -right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow"
+      title="Toggle Sidebar"
+    >
+      <ChevronLeft
+        class="w-3 h-3 text-gray-600 transition-transform"
+        :class="{ 'rotate-180': isCollapsed }"
+      />
+    </button>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { computed } from 'vue'
+import type { SidebarConfig, NavigationItem } from '@/types'
+import { markActiveRoute } from '@/config/navigation'
+import SidebarBrand from './SidebarBrand.vue'
+import SidebarWorkspaceInfo from './SidebarWorkspaceInfo.vue'
+import SidebarNavItem from './SidebarNavItem.vue'
+import SidebarUserProfile from './SidebarUserProfile.vue'
+import { ChevronLeft } from 'lucide-vue-next'
 
 interface Props {
+  config: SidebarConfig
+  isCollapsed?: boolean
+  isMobileOpen?: boolean
   activeRoute?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  activeRoute: 'boards',
+  isCollapsed: false,
+  isMobileOpen: false,
+  activeRoute: '/boards',
 })
 
-const isActive = (route: string) => {
-  return props.activeRoute === route
+const emit = defineEmits<{
+  navigationClick: [item: NavigationItem]
+  toggleCollapse: []
+  mobileClose: []
+  workspaceMenuClick: []
+  userSettingsClick: []
+}>()
+
+// Extract config properties
+const brand = computed(() => props.config.brand)
+const workspace = computed(() => props.config.workspace)
+const user = computed(() => props.config.user)
+const features = computed(() => props.config.features)
+
+// Process navigation with active route
+const processedNavigation = computed(() => {
+  return markActiveRoute(props.config.navigation, props.activeRoute)
+})
+
+const handleNavigationClick = (item: NavigationItem) => {
+  emit('navigationClick', item)
+}
+
+const handleMobileClose = () => {
+  emit('mobileClose')
+}
+
+const handleWorkspaceMenuClick = () => {
+  emit('workspaceMenuClick')
+}
+
+const handleUserSettingsClick = () => {
+  emit('userSettingsClick')
+}
+
+const handleToggleCollapse = () => {
+  emit('toggleCollapse')
 }
 </script>
+
+<style scoped>
+/* Custom scrollbar for navigation */
+nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+nav::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+nav::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+</style>

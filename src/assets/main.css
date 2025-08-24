@@ -1,7 +1,18 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
+
+/* Disable bounce effects */
+html {
+  overscroll-behavior: none;
+  scroll-behavior: auto;
+}
+
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: auto;
+}
 
 :root {
   --card: oklch(1 0 0);

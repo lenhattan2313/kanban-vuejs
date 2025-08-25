@@ -13,7 +13,7 @@ class LocalStorageBoardService implements BoardService {
     return `kanban_boards_${key}`
   }
 
-  private async delay(ms: number = 100): Promise<void> {
+  private async delay(ms: number = 200): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 

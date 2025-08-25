@@ -1,11 +1,15 @@
 <template>
   <div class="h-screen flex flex-col">
     <!-- Header -->
-    <KanbanHeader :board="currentBoard" @settings="openSettings" @add-card="openAddCard" />
+    <KanbanHeader
+      :board="boardStore.currentBoard"
+      @settings="openSettings"
+      @add-card="openAddCard"
+    />
 
     <!-- Main Content -->
     <main class="flex-1 overflow-hidden">
-      <div v-if="isLoading" class="flex items-center justify-center py-12">
+      <div v-if="uiStore.isGlobalLoading" class="flex items-center justify-center py-12">
         <div class="text-center">
           <div
             class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto mb-4"
@@ -14,24 +18,24 @@
         </div>
       </div>
 
-      <div v-else-if="error" class="flex items-center justify-center py-12">
+      <div v-else-if="uiStore.globalError" class="flex items-center justify-center py-12">
         <div class="text-center">
-          <p class="text-destructive mb-4">{{ error }}</p>
+          <p class="text-destructive mb-4">{{ uiStore.globalError }}</p>
           <BaseButton @click="fetchBoard('1')">Try Again</BaseButton>
         </div>
       </div>
 
-      <div v-else-if="currentBoard" class="h-full p-6">
+      <div v-else-if="boardStore.currentBoard" class="h-full p-6">
         <!-- Board Stats -->
         <div class="flex items-center gap-4 text-sm text-muted-foreground mb-6">
-          <span>{{ boardColumns.length }} columns</span>
-          <span>{{ totalCards }} cards</span>
+          <span>{{ boardStore.boardColumns.length }} columns</span>
+          <span>{{ boardStore.totalCards }} cards</span>
         </div>
 
         <!-- Kanban Columns -->
         <div class="flex gap-4 overflow-x-auto pb-4 h-full">
           <KanbanColumn
-            v-for="column in boardColumns"
+            v-for="column in boardStore.boardColumns"
             :key="column.id"
             :column="column"
             @edit="editColumn"
@@ -54,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBoardStore, useUIStore, useLocalStorageStore } from '@/stores'
 import BaseButton from '@/components/ui/Button.vue'
@@ -67,8 +71,19 @@ const boardStore = useBoardStore()
 const uiStore = useUIStore()
 const localStorageStore = useLocalStorageStore()
 
-const { currentBoard, boardColumns, totalCards, fetchBoard } = boardStore
-const { isGlobalLoading: isLoading, globalError: error } = uiStore
+// Get actions directly from stores
+const { fetchBoard } = boardStore
+
+console.log('currentBoard', boardStore.currentBoard)
+
+// Watch for changes in currentBoard
+watch(
+  () => boardStore.currentBoard,
+  (newBoard) => {
+    console.log('currentBoard changed:', newBoard)
+  },
+  { immediate: true },
+)
 
 const openCard = (card: Card) => {
   console.log('Opening card:', card)
@@ -112,8 +127,16 @@ const deleteCard = (card: Card) => {
 
 onMounted(async () => {
   const boardId = route.params.id as string
+  console.log('Loading board with ID:', boardId)
+
   await fetchBoard(boardId)
-  // Save to recent boards
-  localStorageStore.saveRecentBoard(boardId)
+
+  console.log('After fetchBoard - currentBoard:', boardStore.currentBoard)
+  console.log('After fetchBoard - boardColumns:', boardStore.boardColumns)
+
+  // Save to recent boards if board was loaded successfully
+  if (boardStore.currentBoard) {
+    localStorageStore.saveRecentBoard(boardId)
+  }
 })
 </script>

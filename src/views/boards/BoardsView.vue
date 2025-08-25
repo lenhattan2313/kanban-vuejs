@@ -1,152 +1,106 @@
 <template>
-  <div class="min-h-screen bg-background">
-    <div class="container mx-auto px-4 py-8">
-      <div class="mb-8">
+  <div class="h-full bg-background relative overflow-hidden group rounded-lg">
+    <!-- Interactive Grid Pattern Background -->
+    <InteractiveGridPattern :width="20" :height="20" :squares="[100, 100]" class="opacity-20" />
+
+    <div class="container mx-auto px-4 py-8 relative z-10">
+      <!-- Header -->
+      <header class="mb-8">
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-3xl font-bold text-foreground mb-2">My Boards</h1>
             <p class="text-muted-foreground">Manage your Kanban boards</p>
           </div>
+          <div class="flex items-center space-x-3">
+            <Button @click="createNewBoard" :loading="isCreatingBoard" size="sm">
+              <IconPlus class="h-4 w-4 mr-2" />
+              New Board
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Error Alert -->
+      <div v-if="error" class="mb-6">
+        <div class="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-destructive text-sm">{{ error }}</p>
+            <button
+              @click="clearError"
+              class="text-destructive hover:text-destructive/80 transition-colors"
+              aria-label="Dismiss error"
+            >
+              <IconX class="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center py-12">
+      <div v-if="isLoading && !hasBoards" class="flex items-center justify-center py-16">
         <div class="text-center">
-          <div
-            class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto mb-4"
-          ></div>
-          <p class="text-muted-foreground">Loading boards...</p>
+          <LoadingSpinner size="lg" class="mb-4" />
+          <p class="text-muted-foreground">Loading your boards...</p>
         </div>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="recentBoards.length === 0" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <div
-            class="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4"
-          >
-            <IconPlus class="h-8 w-8 text-muted-foreground" />
-          </div>
-          <h3 class="text-lg font-semibold text-foreground mb-2">No boards yet</h3>
-          <p class="text-muted-foreground mb-6">Create your first Kanban board to get started</p>
-          <Button @click="createNewBoard" class="px-6">
-            <IconPlus class="h-4 w-4 mr-2" />
-            Create Your First Board
-          </Button>
-        </div>
-      </div>
+      <EmptyState
+        v-else-if="!isLoading && !hasBoards"
+        :is-loading="isCreatingBoard"
+        @create="createNewBoard"
+      />
 
       <!-- Boards Grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-else-if="hasBoards" class="space-y-6">
         <!-- Recent Boards -->
-        <div
-          v-for="board in recentBoards"
-          :key="board.id"
-          class="bg-card border rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
-          @click="navigateToBoard(board.id)"
-        >
-          <h3 class="font-semibold text-foreground mb-2">{{ board.title }}</h3>
-          <p v-if="board.description" class="text-sm text-muted-foreground mb-4 line-clamp-2">
-            {{ board.description }}
-          </p>
-          <div class="flex items-center justify-between text-sm text-muted-foreground">
-            <span>{{ board.columns.length }} columns</span>
-            <span>{{ getTotalCards(board) }} cards</span>
+        <section>
+          <h2 class="text-lg font-semibold text-foreground mb-4">Recent Boards</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <BoardCard
+              v-for="board in boards"
+              :key="board.id"
+              :board="board"
+              @click="navigateToBoard"
+              @edit="handleEditBoard"
+              @delete="handleDeleteBoard"
+            />
           </div>
-        </div>
-
-        <!-- Create New Board -->
-        <div
-          class="bg-card border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer flex items-center justify-center"
-          @click="createNewBoard"
-        >
-          <div class="text-center">
-            <IconPlus class="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p class="text-muted-foreground">Create New Board</p>
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useBoardStore, useUserStore, useUIStore } from '@/stores'
-import IconPlus from '@/components/icons/IconPlus.vue'
+import { useBoards } from '@/composables/useBoards'
+import { BoardCard, EmptyState } from '@/components/boards'
 import Button from '@/components/ui/Button.vue'
-import type { Board, User } from '@/types'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import IconPlus from '@/components/icons/IconPlus.vue'
+import IconX from '@/components/icons/IconX.vue'
+import { InteractiveGridPattern } from '@/components/ui/interactive-grid-pattern'
 
-const router = useRouter()
-const boardStore = useBoardStore()
-const userStore = useUserStore()
-const uiStore = useUIStore()
+// Use the boards composable
+const {
+  boards,
+  isLoading,
+  hasBoards,
+  isCreatingBoard,
+  error,
+  createNewBoard,
+  navigateToBoard,
+  clearError,
+} = useBoards()
 
-const recentBoards = computed(() => boardStore.boards)
-const isLoading = computed(() => uiStore.isGlobalLoading)
-
-const getTotalCards = (board: Board): number => {
-  return board.columns.reduce((total, column) => total + column.cards.length, 0)
+// Handle board actions
+const handleEditBoard = (boardId: string) => {
+  // TODO: Implement edit board functionality
+  console.log('Edit board:', boardId)
 }
 
-const navigateToBoard = (boardId: string) => {
-  router.push({ name: 'board', params: { id: boardId } })
-}
-
-const createNewBoard = async () => {
-  try {
-    // Create a default user if none exists
-    let userId = userStore.currentUser?.id
-    if (!userId) {
-      const defaultUser: User = {
-        id: 'user_1',
-        name: 'User',
-        email: 'user@example.com',
-        role: 'admin',
-        preferences: {
-          theme: 'auto',
-          language: 'en',
-          notifications: {
-            email: true,
-            push: true,
-            mentions: true,
-            dueDateReminders: true,
-          },
-          boardView: 'kanban',
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-      await userStore.createUser(defaultUser)
-      userId = defaultUser.id
-    }
-
-    const newBoard = await boardStore.createBoard({
-      title: 'New Board',
-      description: 'A new Kanban board',
-      ownerId: userId!,
-      isPublic: true,
-      columns: [],
-      settings: {
-        theme: 'auto',
-        allowComments: true,
-        allowAttachments: true,
-        autoArchive: false,
-        workflowRules: [],
-      },
-      members: [
-        {
-          userId: userId!,
-          role: 'owner',
-          joinedAt: new Date(),
-        },
-      ],
-    })
-    router.push({ name: 'board', params: { id: newBoard.id } })
-  } catch (error) {
-    console.error('Failed to create board:', error)
-  }
+const handleDeleteBoard = (boardId: string) => {
+  // TODO: Implement delete board functionality
+  console.log('Delete board:', boardId)
 }
 </script>

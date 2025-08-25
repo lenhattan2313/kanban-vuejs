@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="flex flex-col h-screen bg-white border-r border-gray-200 transition-all duration-300 relative"
+    class="flex flex-col h-screen transition-all duration-300 relative"
     :class="[
       isCollapsed ? 'w-16' : 'w-64',
       isMobileOpen ? 'fixed inset-y-0 left-0 z-50' : '',
@@ -52,7 +52,7 @@
     <button
       v-if="features?.collapsible"
       @click="handleToggleCollapse"
-      class="absolute -right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow"
+      class="absolute -right-7 top-1/2 z-2 transform -translate-y-1/2 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow"
       title="Toggle Sidebar"
     >
       <ChevronLeft

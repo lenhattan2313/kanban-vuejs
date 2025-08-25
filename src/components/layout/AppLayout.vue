@@ -14,7 +14,7 @@
     />
 
     <!-- Main Content -->
-    <main class="flex-1 bg-white h-[calc(100vh-2rem)] m-4 rounded-lg border border-gray-200">
+    <main class="flex-1 bg-white h-[calc(100vh-2rem)] m-4 rounded-lg border border-gray-100">
       <slot />
     </main>
   </div>

@@ -12,10 +12,10 @@
             <p class="text-muted-foreground">Manage your Kanban boards</p>
           </div>
           <div class="flex items-center space-x-3">
-            <Button @click="createNewBoard" :loading="isCreatingBoard" size="sm">
+            <InteractiveButton :loading="isCreatingBoard" size="sm" @click="createNewBoard">
               <IconPlus class="h-4 w-4 mr-2" />
               New Board
-            </Button>
+            </InteractiveButton>
           </div>
         </div>
       </header>
@@ -54,19 +54,16 @@
       <!-- Boards Grid -->
       <div v-else-if="hasBoards" class="space-y-6">
         <!-- Recent Boards -->
-        <section>
-          <h2 class="text-lg font-semibold text-foreground mb-4">Recent Boards</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <BoardCard
-              v-for="board in boards"
-              :key="board.id"
-              :board="board"
-              @click="navigateToBoard"
-              @edit="handleEditBoard"
-              @delete="handleDeleteBoard"
-            />
-          </div>
-        </section>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <BoardCard
+            v-for="board in boards"
+            :key="board.id"
+            :board="board"
+            @click="navigateToBoard"
+            @edit="handleEditBoard"
+            @delete="handleDeleteBoard"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -75,7 +72,7 @@
 <script setup lang="ts">
 import { useBoards } from '@/composables/useBoards'
 import { BoardCard, EmptyState } from '@/components/boards'
-import Button from '@/components/ui/Button.vue'
+import InteractiveButton from '@/components/ui/InteractiveButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import IconPlus from '@/components/icons/IconPlus.vue'
 import IconX from '@/components/icons/IconX.vue'

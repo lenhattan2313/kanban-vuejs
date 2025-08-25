@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { RouterView } from 'vue-router'
 import AppLayout from '@/components/layout/AppLayout.vue'
+import { useAppStore } from '@/stores'
 
 const route = useRoute()
+const appStore = useAppStore()
+
+// Initialize stores on app mount
+onMounted(async () => {
+  await appStore.initializeApp()
+})
 
 const activeRoute = computed(() => {
   const path = route.path

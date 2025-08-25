@@ -56,16 +56,19 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useKanbanStore } from '@/stores/kanban'
+import { useBoardStore, useUIStore, useLocalStorageStore } from '@/stores'
 import BaseButton from '@/components/ui/Button.vue'
 import KanbanHeader from '@/components/kanban/KanbanHeader.vue'
 import KanbanColumn from '@/components/kanban/KanbanColumn.vue'
 import type { Card, Column } from '@/types'
 
 const route = useRoute()
-const kanbanStore = useKanbanStore()
+const boardStore = useBoardStore()
+const uiStore = useUIStore()
+const localStorageStore = useLocalStorageStore()
 
-const { currentBoard, boardColumns, totalCards, isLoading, error, fetchBoard } = kanbanStore
+const { currentBoard, boardColumns, totalCards, fetchBoard } = boardStore
+const { isGlobalLoading: isLoading, globalError: error } = uiStore
 
 const openCard = (card: Card) => {
   console.log('Opening card:', card)
@@ -107,8 +110,10 @@ const deleteCard = (card: Card) => {
   // TODO: Confirm and delete card
 }
 
-onMounted(() => {
+onMounted(async () => {
   const boardId = route.params.id as string
-  fetchBoard(boardId)
+  await fetchBoard(boardId)
+  // Save to recent boards
+  localStorageStore.saveRecentBoard(boardId)
 })
 </script>

@@ -1,7 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import BoardsPage from '@/views/BoardsPage.vue'
-import KanbanBoard from '@/views/KanbanBoard.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -12,7 +10,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/boards',
     name: 'boards',
-    component: BoardsPage,
+    component: () => import('@/views/boards/BoardsView.vue'),
     meta: {
       title: 'Boards',
       requiresAuth: false,
@@ -21,7 +19,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/board/:id',
     name: 'board',
-    component: KanbanBoard,
+    component: () => import('@/views/boards/KanbanBoard.vue'),
     props: true,
     meta: {
       title: 'Kanban Board',
@@ -29,19 +27,9 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
-    path: '/board/:id/settings',
-    name: 'board-settings',
-    component: () => import('@/views/BoardSettingsView.vue'),
-    props: true,
-    meta: {
-      title: 'Board Settings',
-      requiresAuth: true,
-    },
-  },
-  {
     path: '/members',
     name: 'members',
-    component: () => import('@/views/MembersPage.vue'),
+    component: () => import('@/views/members/MembersView.vue'),
     meta: {
       title: 'Members',
       requiresAuth: false,
@@ -50,25 +38,16 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/settings',
     name: 'settings',
-    component: () => import('@/views/SettingsPage.vue'),
+    component: () => import('@/views/settings/SettingsView.vue'),
     meta: {
       title: 'Settings',
       requiresAuth: false,
     },
   },
   {
-    path: '/profile',
-    name: 'profile',
-    component: () => import('@/views/ProfileView.vue'),
-    meta: {
-      title: 'Profile',
-      requiresAuth: true,
-    },
-  },
-  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    component: () => import('@/views/NotFoundView.vue'),
+    component: () => import('@/views/errors/NotFoundView.vue'),
     meta: {
       title: 'Page Not Found',
     },

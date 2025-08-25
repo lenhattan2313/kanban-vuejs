@@ -2,8 +2,25 @@
   <div class="min-h-screen bg-background">
     <div class="container mx-auto px-4 py-8">
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-foreground mb-2">My Boards</h1>
-        <p class="text-muted-foreground">Manage your Kanban boards</p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-foreground mb-2">My Boards</h1>
+            <p class="text-muted-foreground">Manage your Kanban boards</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <Button variant="outline" size="sm" @click="importBoard">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Import
+            </Button>
+          </div>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -44,6 +61,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useKanbanStore } from '@/stores/kanban'
 import IconPlus from '@/components/icons/IconPlus.vue'
+import Button from '@/components/ui/Button.vue'
 import type { Board } from '@/types'
 
 const router = useRouter()
@@ -62,5 +80,10 @@ const navigateToBoard = (boardId: string) => {
 const createNewBoard = () => {
   // TODO: Implement create board functionality
   console.log('Create new board')
+}
+
+const importBoard = () => {
+  console.log('Importing board')
+  // TODO: Open import board modal
 }
 </script>

@@ -18,14 +18,8 @@
 
         <!-- User Info -->
         <div v-if="!isCollapsed" class="flex-1 min-w-0">
-          <p class="text-gray-900 text-sm font-medium truncate">
-            {{ user.name }}
-          </p>
           <p class="text-gray-500 text-xs truncate">
             {{ user.email }}
-          </p>
-          <p v-if="user.role" class="text-gray-400 text-xs capitalize">
-            {{ user.role }}
           </p>
         </div>
 

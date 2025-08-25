@@ -48,6 +48,10 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  --font-weight-normal: 300;
+  --font-weight-medium: 400;
+  --font-weight-bold: 500;
 }
 
 .dark {
@@ -83,6 +87,9 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+
+  --font-weight-normal: 200;
+  --font-weight-medium: 300;
 }
 
 @theme inline {

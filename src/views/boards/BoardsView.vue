@@ -7,14 +7,11 @@
       <!-- Header -->
       <header class="mb-8">
         <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-foreground mb-2">My Boards</h1>
-            <p class="text-muted-foreground">Manage your Kanban boards</p>
-          </div>
+          <h1 class="text-3xl font-bold text-foreground mb-2">Boards</h1>
           <div class="flex items-center space-x-3">
-            <InteractiveButton :loading="isCreatingBoard" size="sm" @click="createNewBoard">
+            <InteractiveButton size="sm" @click="openCreateModal">
               <IconPlus class="h-4 w-4 mr-2" />
-              New Board
+              New
             </InteractiveButton>
           </div>
         </div>
@@ -48,7 +45,7 @@
       <EmptyState
         v-else-if="!isLoading && !hasBoards"
         :is-loading="isCreatingBoard"
-        @create="createNewBoard"
+        @create="openCreateModal"
       />
 
       <!-- Boards Grid -->
@@ -60,23 +57,45 @@
             :key="board.id"
             :board="board"
             @click="navigateToBoard"
-            @edit="handleEditBoard"
             @delete="handleDeleteBoard"
           />
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <ConfirmModal
+      :is-open="showDeleteModal"
+      title="Delete Board"
+      :message="`Are you sure you want to delete '${boardToDelete?.title}'?`"
+      description="This action cannot be undone. All cards, columns, and board data will be permanently removed."
+      confirm-text="Delete Board"
+      :is-loading="isDeletingBoard"
+      @close="closeDeleteModal"
+      @confirm="confirmDeleteBoard"
+    />
+
+    <!-- Create Board Modal -->
+    <CreateBoardModal
+      :is-open="showCreateModal"
+      :is-loading="isCreatingBoard"
+      @close="closeCreateModal"
+      @create="handleCreateBoard"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useBoards } from '@/composables/useBoards'
-import { BoardCard, EmptyState } from '@/components/boards'
+import { BoardCard, EmptyState, CreateBoardModal } from '@/components/boards'
+import { ConfirmModal } from '@/components/ui'
 import InteractiveButton from '@/components/ui/InteractiveButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import IconPlus from '@/components/icons/IconPlus.vue'
 import IconX from '@/components/icons/IconX.vue'
 import { InteractiveGridPattern } from '@/components/ui/interactive-grid-pattern'
+import type { Board } from '@/types'
 
 // Use the boards composable
 const {
@@ -86,18 +105,64 @@ const {
   isCreatingBoard,
   error,
   createNewBoard,
+  deleteBoard,
   navigateToBoard,
   clearError,
 } = useBoards()
 
+// Delete modal state
+const showDeleteModal = ref(false)
+const boardToDelete = ref<Board | null>(null)
+const isDeletingBoard = ref(false)
+
+// Create modal state
+const showCreateModal = ref(false)
+
 // Handle board actions
-const handleEditBoard = (boardId: string) => {
-  // TODO: Implement edit board functionality
-  console.log('Edit board:', boardId)
+const handleDeleteBoard = (boardId: string) => {
+  const board = boards.value.find((b) => b.id === boardId)
+  if (board) {
+    boardToDelete.value = board
+    showDeleteModal.value = true
+  }
 }
 
-const handleDeleteBoard = (boardId: string) => {
-  // TODO: Implement delete board functionality
-  console.log('Delete board:', boardId)
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  boardToDelete.value = null
+}
+
+const confirmDeleteBoard = async () => {
+  if (!boardToDelete.value) return
+
+  isDeletingBoard.value = true
+  try {
+    await deleteBoard(boardToDelete.value.id)
+    closeDeleteModal()
+  } catch (err) {
+    // Error is already handled in the composable
+    console.error('Failed to delete board:', err)
+  } finally {
+    isDeletingBoard.value = false
+  }
+}
+
+// Create board methods
+const openCreateModal = () => {
+  showCreateModal.value = true
+}
+
+const closeCreateModal = () => {
+  showCreateModal.value = false
+}
+
+const handleCreateBoard = async (boardName: string) => {
+  try {
+    await createNewBoard(boardName)
+    closeCreateModal()
+  } catch (err) {
+    // Error is already handled in the composable
+    console.error('Failed to create board:', err)
+  }
 }
 </script>

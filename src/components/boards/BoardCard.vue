@@ -16,13 +16,6 @@
       </h3>
       <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
-          @click.stop="$emit('edit', board.id)"
-          class="p-1 rounded hover:bg-muted transition-colors"
-          aria-label="Edit board"
-        >
-          <IconEdit class="h-4 w-4 text-muted-foreground hover:text-foreground" />
-        </button>
-        <button
           @click.stop="$emit('delete', board.id)"
           class="p-1 rounded hover:bg-muted transition-colors"
           aria-label="Delete board"
@@ -57,7 +50,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Board } from '@/types'
-import IconEdit from '@/components/icons/IconEdit.vue'
 import IconTrash from '@/components/icons/IconTrash.vue'
 
 interface Props {
@@ -66,7 +58,6 @@ interface Props {
 
 interface Emits {
   (e: 'click', boardId: string): void
-  (e: 'edit', boardId: string): void
   (e: 'delete', boardId: string): void
 }
 

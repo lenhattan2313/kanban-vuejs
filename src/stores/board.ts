@@ -85,6 +85,31 @@ export const useBoardStore = defineStore('board', () => {
     currentBoard.value = board
   }
 
+  const deleteBoard = async (boardId: string) => {
+    setLoading(true)
+    try {
+      const success = await boardService.deleteBoard(boardId)
+      if (success) {
+        // Remove from boards list
+        boards.value = boards.value.filter((board) => board.id !== boardId)
+
+        // If the deleted board was the current board, clear it
+        if (currentBoard.value?.id === boardId) {
+          currentBoard.value = null
+        }
+      } else {
+        setLoading(false, 'Board not found')
+        throw new Error('Board not found')
+      }
+    } catch (err) {
+      setLoading(false, 'Failed to delete board')
+      console.error(err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const clearError = () => {
     error.value = null
   }
@@ -104,6 +129,7 @@ export const useBoardStore = defineStore('board', () => {
     setLoading,
     fetchBoard,
     createBoard,
+    deleteBoard,
     refreshBoards,
     initializeBoards,
     setCurrentBoard,

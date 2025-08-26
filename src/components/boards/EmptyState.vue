@@ -8,16 +8,16 @@
       <p class="text-muted-foreground mb-8 leading-relaxed">
         Create your first Kanban board to start organizing your tasks and projects efficiently.
       </p>
-      <Button @click="$emit('create')" :loading="isLoading" class="px-8 py-3" size="lg">
+      <InteractiveButton @click="$emit('create')" :loading="isLoading" class="px-8 py-3" size="lg">
         <IconPlus class="h-5 w-5 mr-2" />
         Create Your First Board
-      </Button>
+      </InteractiveButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import Button from '@/components/ui/Button.vue'
+import InteractiveButton from '@/components/ui/InteractiveButton.vue'
 import IconPlus from '@/components/icons/IconPlus.vue'
 
 interface Props {

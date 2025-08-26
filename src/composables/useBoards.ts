@@ -52,7 +52,7 @@ export function useBoards() {
     return defaultUser.id
   }
 
-  const createNewBoard = async () => {
+  const createNewBoard = async (boardName?: string) => {
     if (isCreatingBoard.value) return
 
     isCreatingBoard.value = true
@@ -66,7 +66,7 @@ export function useBoards() {
       }
 
       const newBoard = await boardStore.createBoard({
-        title: 'New Board',
+        title: boardName || 'New Board',
         description: 'A new Kanban board',
         ownerId: userId,
         isPublic: true,
@@ -105,6 +105,16 @@ export function useBoards() {
     }
   }
 
+  const deleteBoard = async (boardId: string) => {
+    try {
+      await boardStore.deleteBoard(boardId)
+    } catch (err) {
+      error.value = 'Failed to delete board. Please try again.'
+      console.error('Failed to delete board:', err)
+      throw err
+    }
+  }
+
   const clearError = () => {
     error.value = null
   }
@@ -124,6 +134,7 @@ export function useBoards() {
     getTotalCards,
     navigateToBoard,
     createNewBoard,
+    deleteBoard,
     refreshBoards,
     clearError,
   }

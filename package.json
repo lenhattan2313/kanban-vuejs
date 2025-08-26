@@ -16,6 +16,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@tanstack/vue-query": "^5.85.5",
     "@vueuse/core": "^13.7.0",
     "lucide-vue-next": "^0.541.0",
     "motion-v": "^1.7.0",

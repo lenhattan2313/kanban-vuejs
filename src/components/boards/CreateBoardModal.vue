@@ -1,16 +1,11 @@
 <template>
-  <Modal
-    :is-open="isOpen"
-    title="Create New Board"
-    :show-close-button="true"
-    @close="$emit('close')"
-  >
+  <Modal :is-open="true" title="New Board" :show-close-button="true" @close="$emit('close')">
     <div class="space-y-4">
       <Input
         id="board-name"
         v-model="boardName"
         placeholder="Enter board name..."
-        :disabled="isLoading"
+        :disabled="boardStore.isLoading"
         @keydown.enter="handleCreateBoard"
       />
     </div>
@@ -18,11 +13,11 @@
     <template #footer>
       <div class="flex items-center justify-end space-x-3">
         <InteractiveButton
-          :loading="isLoading"
+          :loading="boardStore.isLoading"
           :disabled="!boardName.trim()"
           @click="handleCreateBoard"
         >
-          New
+          Create
         </InteractiveButton>
       </div>
     </template>
@@ -30,41 +25,52 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
 import Input from '@/components/ui/Input.vue'
 import InteractiveButton from '@/components/ui/InteractiveButton.vue'
-
-interface Props {
-  isOpen: boolean
-  isLoading?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  isLoading: false,
-})
+import { useBoardStore } from '@/stores/board'
+import { useUserStore } from '@/stores/user'
 
 const emit = defineEmits<{
   close: []
-  create: [boardName: string]
 }>()
 
+const boardStore = useBoardStore()
+const userStore = useUserStore()
 const boardName = ref('')
 
-// Reset board name when modal opens/closes
-watch(
-  () => props.isOpen,
-  (isOpen) => {
-    if (isOpen) {
-      boardName.value = ''
-    }
-  },
-)
+// Reset board name when modal opens
+onMounted(() => {
+  boardName.value = ''
+})
 
-const handleCreateBoard = () => {
+const handleCreateBoard = async () => {
   const trimmedName = boardName.value.trim()
-  if (trimmedName && !props.isLoading) {
-    emit('create', trimmedName)
+  if (trimmedName && !boardStore.isLoading) {
+    try {
+      await boardStore.createBoard({
+        title: trimmedName,
+        description: '',
+        ownerId: userStore.currentUser?.id || 'current-user',
+        isPublic: false,
+        columns: [],
+        settings: {
+          theme: 'light',
+          allowComments: true,
+          allowAttachments: true,
+          autoArchive: false,
+          workflowRules: [],
+        },
+        members: [],
+      })
+
+      // Close modal after successful creation
+      emit('close')
+    } catch (error) {
+      console.error('Failed to create board:', error)
+      // Error handling is managed by the store
+    }
   }
 }
 </script>

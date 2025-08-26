@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { RouterView } from 'vue-router'
 import AppLayout from '@/components/layout/AppLayout.vue'
+import { ModalContainer } from '@/components/ui'
 import { useAppStore } from '@/stores'
 
 const route = useRoute()
@@ -33,6 +34,9 @@ const activeRoute = computed(() => {
   <AppLayout :active-route="activeRoute">
     <RouterView />
   </AppLayout>
+
+  <!-- Global Modal Container -->
+  <ModalContainer />
 </template>
 
 <style scoped>

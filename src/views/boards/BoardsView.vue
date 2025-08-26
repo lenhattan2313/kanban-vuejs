@@ -74,14 +74,6 @@
       @close="closeDeleteModal"
       @confirm="confirmDeleteBoard"
     />
-
-    <!-- Create Board Modal -->
-    <CreateBoardModal
-      :is-open="showCreateModal"
-      :is-loading="isCreatingBoard"
-      @close="closeCreateModal"
-      @create="handleCreateBoard"
-    />
   </div>
 </template>
 
@@ -95,6 +87,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import IconPlus from '@/components/icons/IconPlus.vue'
 import IconX from '@/components/icons/IconX.vue'
 import { InteractiveGridPattern } from '@/components/ui/interactive-grid-pattern'
+import { useModalService } from '@/lib/services'
 import type { Board } from '@/types'
 
 // Use the boards composable
@@ -104,19 +97,18 @@ const {
   hasBoards,
   isCreatingBoard,
   error,
-  createNewBoard,
   deleteBoard,
   navigateToBoard,
   clearError,
 } = useBoards()
 
+// Use modal service
+const { open: openModal } = useModalService()
+
 // Delete modal state
 const showDeleteModal = ref(false)
 const boardToDelete = ref<Board | null>(null)
 const isDeletingBoard = ref(false)
-
-// Create modal state
-const showCreateModal = ref(false)
 
 // Handle board actions
 const handleDeleteBoard = (boardId: string) => {
@@ -149,20 +141,9 @@ const confirmDeleteBoard = async () => {
 
 // Create board methods
 const openCreateModal = () => {
-  showCreateModal.value = true
-}
-
-const closeCreateModal = () => {
-  showCreateModal.value = false
-}
-
-const handleCreateBoard = async (boardName: string) => {
-  try {
-    await createNewBoard(boardName)
-    closeCreateModal()
-  } catch (err) {
-    // Error is already handled in the composable
-    console.error('Failed to create board:', err)
-  }
+  openModal({
+    id: 'create-board-modal',
+    component: CreateBoardModal,
+  })
 }
 </script>
